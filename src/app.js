@@ -13,6 +13,8 @@ async function init() {
   const userSection = document.querySelector('#user');
   const loginBtn = document.querySelector('#login');
   const logoutBtn = document.querySelector('#logout');
+  //
+  const postBtn = document.querySelector('#post');
 
   const user = await getUser();
 
@@ -50,6 +52,32 @@ async function init() {
   
   // Do an authenticated request to the fragments API server and log the result
   getUserFragments(user);
+
+
+  const apiUrl = 'http://ec2-3-83-69-34.compute-1.amazonaws.com:8080';
+  // Post button
+  postBtn.onclick = async() => {
+    console.log('POST fragments data...');
+    console.log('POSTing: ' + document.querySelector('#postText').value);
+    try {
+      const res = await fetch(`${apiUrl}/v1/fragments`, {
+        method: "POST",
+        body: document.querySelector('#postText').value,
+        // Generate headers with the proper Authorization bearer token to pass
+        headers: {
+          Authorization: user.authorizationHeaders().Authorization,
+          "Content-Type" : "text/plain",
+        }
+      });
+      if (!res.ok) {
+        throw new Error(`${res.status} ${res.statusText}`);
+      }
+      const data = await res.json();
+      console.log('Posted user fragments data', { data });
+    } catch (err) {
+      console.error('Unable to POST to /v1/fragment', { err });
+    }
+  }
 }
 
 // Wait for the DOM to be ready, then start the app
