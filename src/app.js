@@ -54,7 +54,7 @@ async function init() {
   getUserFragments(user);
 
 
-  const apiUrl = 'http://ec2-3-83-69-34.compute-1.amazonaws.com:8080';
+  const apiUrl = process.env.API_URL || 'http://localhost:8080';
   // Post button
   postBtn.onclick = async() => {
     console.log('POST fragments data...');
