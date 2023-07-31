@@ -1,13 +1,28 @@
-# Dockerfile
+# Build and serve fragments-ui with nginx
 
-# Use node version 18.13.0
-FROM node:18.16.0 AS dependencies
+# Start with nginx on Debian
+FROM nginx:stable
 
-LABEL maintainer="Bobby Li <bli120@myseneca.ca>"
-LABEL description="Fragments node.js microservice"
+# Pick a version: 19, 18, 17, 16, 14, 12, lts, current, see:
+# https://github.com/nodesource/distributions/blob/master/README.md#installation-instructions
+ARG NODE_VERSION=18
 
-# We default to use port 1234 in our service
-ENV PORT=1234
+# .env values
+ARG API_URL=http://ec2-52-91-231-142.compute-1.amazonaws.com:8080
+ARG AWS_COGNITO_POOL_ID=us-east-1_kie2BCnSi
+ARG AWS_COGNITO_CLIENT_ID=t6eargfj9khmvnip6ut16fdkn
+ARG AWS_COGNITO_HOSTED_UI_DOMAIN=bli-fragments.auth.us-east-1.amazoncognito.com
+ARG OAUTH_SIGN_IN_REDIRECT_URL=http://localhost:80
+ARG OAUTH_SIGN_OUT_REDIRECT_URL=http://localhost:80
+
+# Install node.js and a build toolchain via apt-get, cleaing up when done.
+# See https://docs.docker.com/develop/develop-images/dockerfile_best-practices/#run
+# https://explainshell.com/explain?cmd=curl+-fsSL+https%3A%2F%2Fdeb.nodesource.com%2Fsetup_%24%7BNODE_VERSION%7D.x+%7C+bash+-
+RUN curl -fsSL https://deb.nodesource.com/setup_${NODE_VERSION}.x | bash - && \
+    apt-get update && apt-get install -y \
+    build-essential \
+    nodejs \
+    && rm -rf /var/lib/apt/lists/*
 
 # Reduce npm spam when installing within Docker
 # https://docs.npmjs.com/cli/v8/using-npm/config#loglevel
@@ -17,46 +32,21 @@ ENV NPM_CONFIG_LOGLEVEL=warn
 # https://docs.npmjs.com/cli/v8/using-npm/config#color
 ENV NPM_CONFIG_COLOR=false
 
-# Use /app as our working directory
-WORKDIR /app
+# Use /usr/local/src/fragments-ui as our working directory
+WORKDIR /usr/local/src/fragments-ui
 
-# Option 1: explicit path - Copy the package.json and package-lock.json
-# files into /app. NOTE: the trailing `/` on `/app/`, which tells Docker
-# that `app` is a directory and not a file.
-COPY package*.json /app/
+# Copy all of our source in
+COPY . .
 
-# Option 2: relative path - Copy the package.json and package-lock.json
-# files into the working dir (/app).  NOTE: this requires that we have
-# already set our WORKDIR in a previous step.
-COPY package*.json ./
-
-# Option 3: explicit filenames - Copy the package.json and package-lock.json
-# files into the working dir (/app), using full paths and multiple source
-# files.  All of the files will be copied into the working dir `./app`
-COPY package.json package-lock.json ./
-
-# # Install node dependencies defined in package-lock.json
-# RUN npm install
-# Enforce only production dependencies are installed
+# Install node dependencies defined in package.json and package-lock.json
 RUN npm ci
-# RUN npm install
-# RUN npm ci --only=production
 
-##############################################################
+# Run the parcel build in order to create ./dist, then
+# copy all of the contents of dist/ to the location where
+# nginx expects to find our HTML web content.  See
+# https://explainshell.com/explain?cmd=cp+-a+.%2Fdist%2F.+%2Fusr%2Fshare%2Fnginx%2Fhtml%2F
+RUN npm run build && \
+    cp -a ./dist/. /usr/share/nginx/html/
 
-FROM node:18.16.0 AS production
-
-# Use /app as our working directory
-WORKDIR /app
-
-COPY --from=dependencies /app /app
-
-# Copy src to /app/src/
-COPY ./src ./src
-
-# Start the container by running our server
-CMD npx parcel
-
-# We run our service on port 1234
-EXPOSE 1234
-
+# nginx will be running on port 80
+EXPOSE 80
