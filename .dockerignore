@@ -1,0 +1,10 @@
+.github/
+.vscode/
+coverage/
+node_modules/
+.env
+.eslintrc.js
+.git/
+.gitignore
+.prettier*
+jest*
