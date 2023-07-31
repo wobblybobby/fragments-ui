@@ -6,7 +6,7 @@ console.log('Hello world!');
 
 import { Auth, getUser } from './auth';
 
-import { getUserFragments } from './api';
+import { getUserFragments, getUserFragmentsExpanded } from './api';
 
 async function init() {
   // Get our UI elements
@@ -15,6 +15,8 @@ async function init() {
   const logoutBtn = document.querySelector('#logout');
   //
   const postBtn = document.querySelector('#post');
+  const postBtn2 = document.querySelector('#post2');
+  const expandBtn = document.querySelector('#expand');
 
   const user = await getUser();
 
@@ -52,6 +54,7 @@ async function init() {
   
   // Do an authenticated request to the fragments API server and log the result
   getUserFragments(user);
+  // getUserFragmentsExpanded(user);
 
 
   const apiUrl = process.env.API_URL || 'http://localhost:8080';
@@ -66,7 +69,7 @@ async function init() {
         // Generate headers with the proper Authorization bearer token to pass
         headers: {
           Authorization: user.authorizationHeaders().Authorization,
-          "Content-Type" : "text/plain",
+          "Content-Type" : "text/*",
         }
       });
       if (!res.ok) {
@@ -76,6 +79,46 @@ async function init() {
       console.log('Posted user fragments data', { data });
     } catch (err) {
       console.error('Unable to POST to /v1/fragment', { err });
+    }
+  }
+
+  postBtn2.onclick = async() => {
+    console.log('POST fragments data...');
+    console.log('POSTing: ' + document.querySelector('#postText2').value);
+    try {
+      const res = await fetch(`${apiUrl}/v1/fragments`, {
+        method: "POST",
+        body: document.querySelector('#postText2').value,
+        // Generate headers with the proper Authorization bearer token to pass
+        headers: {
+          Authorization: user.authorizationHeaders().Authorization,
+          "Content-Type" : "application/json",
+        }
+      });
+      if (!res.ok) {
+        throw new Error(`${res.status} ${res.statusText}`);
+      }
+      const data = await res.json();
+      console.log('Posted user fragments data', { data });
+    } catch (err) {
+      console.error('Unable to POST to /v1/fragment', { err });
+    }
+  }
+
+  expandBtn.onclick = async() => {
+    console.log('Requesting user fragments data...');
+    try {
+      const res = await fetch(`${apiUrl}/v1/fragments?expand=1`, {
+        // Generate headers with the proper Authorization bearer token to pass
+        headers: user.authorizationHeaders(),
+      });
+      if (!res.ok) {
+        throw new Error(`${res.status} ${res.statusText}`);
+      }
+      const data = await res.json();
+      console.log('Got user fragments data', { data });
+    } catch (err) {
+      console.error('Unable to call GET /v1/fragment', { err });
     }
   }
 }
