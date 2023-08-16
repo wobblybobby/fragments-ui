@@ -8,7 +8,7 @@ FROM nginx:stable
 ARG NODE_VERSION=18
 
 # .env values
-ARG API_URL=http://ec2-52-91-231-142.compute-1.amazonaws.com:8080
+ARG API_URL=http://ec2co-ecsel-ypex6gwy0eyf-218612650.us-east-1.elb.amazonaws.com:8080
 ARG AWS_COGNITO_POOL_ID=us-east-1_kie2BCnSi
 ARG AWS_COGNITO_CLIENT_ID=t6eargfj9khmvnip6ut16fdkn
 ARG AWS_COGNITO_HOSTED_UI_DOMAIN=bli-fragments.auth.us-east-1.amazoncognito.com
