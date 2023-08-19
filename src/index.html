@@ -21,32 +21,50 @@
   </head>
   <body>
     <h1>Fragments UI</h1>
+    <section hidden id="user">
+      <h2>Hello <span class="username"></span>!</h2>
+    </section>
     <section>
       <nav><button id="login">Login</button> <button id="logout">Logout</button></nav>
       <br>
       <nav>
         <form>
-          <label for="postLabel">Enter fragment text here to POST (text/*)</label>
-          <input id="postText" type="text"/>
+          <label for="textfield">Enter fragment text here to POST</label>
+          <input id="textfield" type="text"/>
         </form>
         <br>
-        <button id="post">Post</button>
+        <button id="textPlainBtn">text/plain</button>
+        <button id="textMdBtn">text/markdown</button>
+        <button id="textHtmlBtn">text/html</button>
+        <button id="applicationJsonBtn">application/json</button>
       </nav>
       <nav>
+        <br>
         <form>
-          <label for="postLabel2">Enter fragment text here to POST (application/json)</label>
-          <input id="postText2" type="text"/>
+          <label for="fragId">Enter fragment id to modify or delete</label>
+          <input id="fragId" type="text"/>
+        </form>
+        <form>
+          <label for="textfield2">Enter fragment text here to PUT</label>
+          <input id="textfield2" type="text"/>
         </form>
         <br>
-        <button id="post2">Post</button>
+        <button id="putBtn">Modify fragment</button>
+        <button id="delBtn">Delete fragment</button>
+      </nav>
+      <nav>
+        <br>
+        <label for="imageFile">Select Image File to POST</label>
+        <input id="imageFile" type="file" accept="image/*">
+    </br>
       </nav>
       <nav>
         <br>
         <button id="expand">View existing fragments with metadata</button>
       </nav>
-    </section>
-    <section hidden id="user">
-      <h2>Hello <span class="username"></span>!</h2>
+      <div>
+        <div id="displayFragments"></div>
+      </div>
     </section>
   </body>
 </html>
