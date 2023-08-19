@@ -6,7 +6,7 @@ console.log('Hello world!');
 
 import { Auth, getUser } from './auth';
 
-import { getUserFragments } from './api';
+import { getUserFragments, getUserFragmentsExpanded } from './api';
 
 async function init() {
   // Get our UI elements
@@ -24,6 +24,7 @@ async function init() {
   const delBtn = document.querySelector('#delBtn');
   //
   const expandBtn = document.querySelector('#expand');
+  const expandBtn2 = document.querySelector('#expand2');
   
   const user = await getUser();
 
@@ -61,7 +62,7 @@ async function init() {
   
   // Do an authenticated request to the fragments API server and log the result
   getUserFragments(user);
-  // getUserFragmentsExpanded(user);
+  getUserFragmentsExpanded(user);
 
 
   const apiUrl = process.env.API_URL || 'http://localhost:8080';
@@ -227,6 +228,44 @@ async function init() {
               document.getElementById("displayFragments").appendChild(document.createElement("br"));
               document.getElementById("displayFragments").appendChild(image);
           }
+        } catch (err) {
+          console.error("Unable to call GET /v1/fragments/:id", { err });
+        }
+      }
+    } catch (err) {
+      console.error('Unable to call GET /v1/fragment', { err });
+    }
+  }
+
+  expandBtn2.onclick = async() => {
+    console.log('Requesting user fragments data...');
+    try {
+      const res = await fetch(`${apiUrl}/v1/fragments?expand=1`, {
+        // Generate headers with the proper Authorization bearer token to pass
+        headers: user.authorizationHeaders(),
+      });
+      if (!res.ok) {
+        throw new Error(`${res.status} ${res.statusText}`);
+      }
+      const data = await res.json();
+      console.log('Got user fragments metadata', { data });
+      // Loop through res fragments and fetch
+      document.getElementById("displayFragments").innerHTML = "";
+      for (const fragment of data.fragments) {
+        try {
+          const res = await fetch(`${apiUrl}/v1/fragments/${fragment.id}/info`, {
+            // Generate headers with the proper Authorization bearer token to pass
+            headers: user.authorizationHeaders(),
+          });
+          if (!res.ok) {
+            throw new Error(`${res.status} ${res.statusText}`);
+          }
+          // Populate with fragment metadata
+          const data = await res.text();
+          document.getElementById("displayFragments").appendChild(document.createElement("hr"));
+          document.getElementById("displayFragments").appendChild(document.createTextNode("Fragment id: " + fragment.id));
+          document.getElementById("displayFragments").appendChild(document.createElement("br"));
+          document.getElementById("displayFragments").appendChild(document.createTextNode(data));
         } catch (err) {
           console.error("Unable to call GET /v1/fragments/:id", { err });
         }
